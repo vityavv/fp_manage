@@ -76,20 +76,39 @@ func main() {
 			app.SetFocus(form)
 			return nil
 		}
+		if event.Rune() == 'q' {
+			app.Stop()
+			return nil
+		}
 		return event
 	})
 
 	//set form fields
-	nameInput := tview.NewInputField().
-		SetLabel("Name").
-		SetFormAttributes(0, tcell.ColorWhite, tcell.ColorBlack, tcell.ColorWhite, tcell.ColorGreen)
-	pathInput := tview.NewInputField().
-		SetLabel("Path").
-		SetFormAttributes(0, tcell.ColorWhite, tcell.ColorBlack, tcell.ColorWhite, tcell.ColorGreen)
+	nameInput := tview.NewInputField().SetLabel("Name")
+	nameInput.SetFormAttributes(0, tcell.ColorWhite, tcell.ColorBlack, tcell.ColorWhite, tcell.ColorGreen)
+	pathInput := tview.NewInputField().SetLabel("Path")
+	pathInput.SetFormAttributes(0, tcell.ColorWhite, tcell.ColorBlack, tcell.ColorWhite, tcell.ColorGreen)
 	form.
 		AddFormItem(nameInput).
 		AddFormItem(pathInput).
-		AddButton("SSSSSS", func() {
+		AddButton("Add", func() {
+			AddGame(nameInput.GetText(), pathInput.GetText())
+			//Print games
+			games, err := GetGames()
+			if err != nil {
+			log.Fatal(err)
+			}
+			for i, game := range games {
+				table.SetCell(i + 1, 0, tview.NewTableCell(game.Name).
+					SetSelectable(false))
+				table.SetCell(i + 1, 1, tview.NewTableCell(game.Path).
+					SetSelectable(false))
+				table.SetCell(i + 1, 2, tview.NewTableCell("Run " + game.Name).
+					SetSelectable(true))
+			}
+		}).AddButton("Cancel", func() {
+			app.SetFocus(table)
+		}).AddButton("Quit", func() {
 			app.Stop()
 		})
 
