@@ -6,22 +6,6 @@ import (
 	"log"
 )
 
-type games []struct{
-	Name string
-	Path string
-}
-
-var dummydata games = games{
-	{
-		Name: "ASDF",
-		Path: "/adsf/dsf/asdf",
-	},
-	{
-		Name: "asdfadsf",
-		Path: "/asdf/asdf/adsf",
-	},
-}
-
 func main() {
 	table := tview.NewTable().SetBorders(true)
 	app := tview.NewApplication()
@@ -38,7 +22,11 @@ func main() {
 		SetAlign(tview.AlignCenter))
 
 	//Print games
-	for i, game := range dummydata {
+	games, err := GetGames()
+	if err != nil {
+		log.Fatal(err)
+	}
+	for i, game := range games {
 		table.SetCell(i + 1, 0, tview.NewTableCell(game.Name))
 		table.SetCell(i + 1, 1, tview.NewTableCell(game.Path))
 		table.SetCell(i + 1, 2, tview.NewTableCell("Not yet"))
