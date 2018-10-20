@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-type Game struct{
+type Game struct {
 	Name string
 	Path string
 }

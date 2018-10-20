@@ -1,15 +1,14 @@
 package main
 
 import (
-	"github.com/rivo/tview"
-	"github.com/gdamore/tcell"
-	"log"
 	"fmt"
+	"github.com/gdamore/tcell"
+	"github.com/rivo/tview"
+	"log"
 	"os/exec"
 )
 
 func main() {
-	flex := tview.NewFlex().SetDirection(tview.FlexRow)
 	table := tview.NewTable().SetBorders(true)
 	table_frame := tview.NewFrame(table).
 		SetBorders(0, 0, 1, 0, 0, 0).
@@ -18,6 +17,7 @@ func main() {
 	form_frame := tview.NewFrame(form).
 		SetBorders(0, 0, 1, 0, 0, 0).
 		AddText("Press a to add a game", true, tview.AlignCenter, tcell.ColorGreen)
+	flex := tview.NewFlex().SetDirection(tview.FlexRow)
 	flex.
 		SetBorder(true).
 		SetTitle("Flashplayer Manager").
@@ -42,20 +42,8 @@ func main() {
 		SetAlign(tview.AlignCenter).
 		SetSelectable(false).
 		SetExpansion(0))
-
-	//Print games
-	games, err := GetGames()
-	if err != nil {
-		log.Fatal(err)
-	}
-	for i, game := range games {
-		table.SetCell(i + 1, 0, tview.NewTableCell(game.Name).
-			SetSelectable(false))
-		table.SetCell(i + 1, 1, tview.NewTableCell(game.Path).
-			SetSelectable(false))
-		table.SetCell(i + 1, 2, tview.NewTableCell("Run " + game.Name).
-			SetSelectable(true))
-	}
+	//Add games
+	addGamesToTable(table)
 
 	//Handle events
 	table.SetDoneFunc(func(key tcell.Key) {
@@ -73,6 +61,7 @@ func main() {
 		}
 	}).SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Rune() == 'a' {
+			table.SetSelectable(false, false)
 			app.SetFocus(form)
 			return nil
 		}
@@ -93,20 +82,11 @@ func main() {
 		AddFormItem(pathInput).
 		AddButton("Add", func() {
 			AddGame(nameInput.GetText(), pathInput.GetText())
-			//Print games
-			games, err := GetGames()
-			if err != nil {
-			log.Fatal(err)
-			}
-			for i, game := range games {
-				table.SetCell(i + 1, 0, tview.NewTableCell(game.Name).
-					SetSelectable(false))
-				table.SetCell(i + 1, 1, tview.NewTableCell(game.Path).
-					SetSelectable(false))
-				table.SetCell(i + 1, 2, tview.NewTableCell("Run " + game.Name).
-					SetSelectable(true))
-			}
+			addGamesToTable(table)
+			table.SetSelectable(true, true)
+			app.SetFocus(table)
 		}).AddButton("Cancel", func() {
+			table.SetSelectable(true, true)
 			app.SetFocus(table)
 		}).AddButton("Quit", func() {
 			app.Stop()
@@ -116,5 +96,22 @@ func main() {
 	table.Select(1, 2).SetSelectable(true, true)
 	if err := app.SetRoot(flex, true).Run(); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func addGamesToTable(table *tview.Table) {
+	//Print games
+	games, err := GetGames()
+	if err != nil {
+		log.Fatal(err)
+	}
+	for i, game := range games {
+		table.SetCell(i + 1, 0, tview.NewTableCell(game.Name).
+			SetSelectable(false))
+		table.SetCell(i + 1, 1, tview.NewTableCell(game.Path).
+			SetSelectable(false))
+		table.SetCell(i + 1, 2, tview.NewTableCell("Run " + 
+	flex := tview.NewFlex().SetDirection(tview.FlexRow)game.Name).
+			SetSelectable(true))
 	}
 }
