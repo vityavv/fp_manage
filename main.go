@@ -26,7 +26,7 @@ func main() {
 	flex.AddItem(form_frame, 0, 1, false)
 	app := tview.NewApplication()
 
-	//set headers
+	//set headers & add games
 	table.SetCell(0, 0, tview.NewTableCell("Name").
 		SetTextColor(tcell.ColorYellow).
 		SetAlign(tview.AlignCenter).
@@ -42,22 +42,36 @@ func main() {
 		SetAlign(tview.AlignCenter).
 		SetSelectable(false).
 		SetExpansion(0))
-	//Add games
+	table.SetCell(0, 3, tview.NewTableCell("Delete").
+		SetTextColor(tcell.ColorYellow).
+		SetAlign(tview.AlignCenter).
+		SetSelectable(false).
+		SetExpansion(0))
 	addGamesToTable(table)
 
 	//Handle events
 	table.SetDoneFunc(func(key tcell.Key) {
-		if key == tcell.KeyEscape {
+		if key == tcell.KeyEscape || key == 'q' {
 			app.Stop()
 		}
-	}).SetSelectedFunc(func(row int, col int) {
-		path := table.GetCell(row, 1).Text
-		cmd := exec.Command("sh", "-c", fmt.Sprintf("flashplayer %s", path))
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			app.Stop()
-			log.Print(string(output))
-			log.Fatal(err)
+	}).SetSelectedFunc(func(row, col int) {
+		switch col {
+			case 2:
+				path := table.GetCell(row, 1).Text
+				cmd := exec.Command("sh", "-c", fmt.Sprintf("flashplayer %s", path))
+				output, err := cmd.CombinedOutput()
+				if err != nil {
+					app.Stop()
+					log.Print(string(output))
+					log.Fatal(err)
+				}
+			case 3:
+				err := DeleteGame(row - 1)
+				if err != nil {
+					app.Stop()
+					log.Fatal(err)
+				}
+				table.RemoveRow(row)
 		}
 	}).SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Rune() == 'a' {
@@ -82,10 +96,14 @@ func main() {
 		AddFormItem(pathInput).
 		AddButton("Add", func() {
 			AddGame(nameInput.GetText(), pathInput.GetText())
+			nameInput.SetText("")
+			pathInput.SetText("")
 			addGamesToTable(table)
 			table.SetSelectable(true, true)
 			app.SetFocus(table)
 		}).AddButton("Cancel", func() {
+			nameInput.SetText("")
+			pathInput.SetText("")
 			table.SetSelectable(true, true)
 			app.SetFocus(table)
 		}).AddButton("Quit", func() {
@@ -110,8 +128,10 @@ func addGamesToTable(table *tview.Table) {
 			SetSelectable(false))
 		table.SetCell(i + 1, 1, tview.NewTableCell(game.Path).
 			SetSelectable(false))
-		table.SetCell(i + 1, 2, tview.NewTableCell("Run " + 
-	flex := tview.NewFlex().SetDirection(tview.FlexRow)game.Name).
+		table.SetCell(i + 1, 2, tview.NewTableCell("Run " + game.Name).
+			SetSelectable(true))
+		table.SetCell(i + 1, 3, tview.NewTableCell("Delete " + game.Name).
 			SetSelectable(true))
 	}
+
 }

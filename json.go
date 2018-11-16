@@ -35,7 +35,21 @@ func AddGame(name, path string) error {
 		Name: name,
 		Path: path,
 	})
-	json, err := json.Marshal(currgames)
+	return writeJSON(currgames)
+}
+
+func DeleteGame(id int) error {
+	currgames, err := GetGames()
+	if err != nil {
+		return err
+	}
+	//trick to remove
+	currgames = append(currgames[:id], currgames[id+1:]...)
+	return writeJSON(currgames)
+}
+	
+func writeJSON(data interface{}) error {
+	json, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
